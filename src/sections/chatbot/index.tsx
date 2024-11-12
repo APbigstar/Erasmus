@@ -217,18 +217,7 @@ const ChatbotView = () => {
                         style={{ width: '200px', height: 'auto' }}
                         alt="User"
                     />
-                    <AnimatedCanvasText
-                        text="Powered by Reblium"
-                        className="absolute top-[2rem] right-[2rem] z-10"
-                        fontSize="18px"
-                        color="white"
-                    />
-                    <AnimatedCanvasText
-                        text="Reblium"
-                        className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 z-10"
-                        fontSize="24px"
-                        color="white"
-                    />
+                    <h3 className="text-white absolute top-[2rem] right-[2rem] z-10">Powered by Reblium</h3>
                 </>
             }
             <div id="sizeContainer" className="relative" ref={videoContainerRef} />
