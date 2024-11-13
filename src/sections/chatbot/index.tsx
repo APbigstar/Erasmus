@@ -18,7 +18,6 @@ const ChatbotView = () => {
     const [arcwareApplication, setArcwareApplication] = useState(null);
 
     const sendCommand = (descriptor) => {
-        console.log(descriptor)
         arcwareApplication?.emitUIInteraction(descriptor);
     };
 
@@ -55,12 +54,9 @@ const ChatbotView = () => {
                 const messageContent = response.replace("AI message :", "").trim();
                 const messageStore = useMessageStore.getState();
                 if (
-                    messageStore.isProcessingMessage &&
-                    messageContent !== messageStore.lastBotMessage &&
-                    Date.now() - messageStore.messageTimestamp < 5000
+                    messageContent !== messageStore.lastBotMessage
                 ) {
                     messageStore.setLastBotMessage(messageContent);
-                    messageStore.setIsProcessingMessage(false);
                 }
             }
         });
@@ -70,9 +66,6 @@ const ChatbotView = () => {
             videoContainerRef.current.appendChild(Application.rootElement);
         }
     }, []);
-
-
-
 
     const [userInput, setUserInput] = useState("");
     const [isCallActive, setIsCallActive] = useState(false);
@@ -85,14 +78,12 @@ const ChatbotView = () => {
     const {
         lastBotMessage,
         setLastBotMessage,
-        isProcessingMessage,
-        setIsProcessingMessage,
         setMessageTimestamp,
     } = useMessageStore();
 
 
     useEffect(() => {
-        if (lastBotMessage && !isProcessingMessage) {
+        if (lastBotMessage) {
             setMessages((prev) => [
                 ...prev,
                 {
@@ -108,17 +99,8 @@ const ChatbotView = () => {
                 chatboxRef.current.scrollTop = chatboxRef.current.scrollHeight;
             }
         }
-    }, [lastBotMessage, isProcessingMessage, setLastBotMessage]);
+    }, [lastBotMessage, setLastBotMessage]);
 
-    useEffect(() => {
-        if (isProcessingMessage) {
-            const timeout = setTimeout(() => {
-                setIsProcessingMessage(false);
-            }, 5000);
-
-            return () => clearTimeout(timeout);
-        }
-    }, [isProcessingMessage, setIsProcessingMessage]);
 
     useEffect(() => {
         if (window.webkitSpeechRecognition) {
@@ -173,12 +155,11 @@ const ChatbotView = () => {
                 },
             ]);
 
-            setIsProcessingMessage(true);
             setMessageTimestamp(Date.now());
 
             sendCommand({ usermessege: message });
         },
-        [sendCommand, setIsProcessingMessage, setMessageTimestamp]
+        [sendCommand, setMessageTimestamp]
     );
 
 
