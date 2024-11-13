@@ -6,8 +6,6 @@ import Image from "next/image";
 import { ArcwareInit } from "@arcware-cloud/pixelstreaming-websdk";
 import { useMessageStore } from "@/store/messageStore";
 
-import AnimatedCanvasText from "./components/AnimatedCanvasText";
-
 interface ChatMessage {
     text: string;
     isUser: boolean;
@@ -18,7 +16,6 @@ const ChatbotView = () => {
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
     const videoContainerRef = useRef<HTMLDivElement>(null);
     const [arcwareApplication, setArcwareApplication] = useState(null);
-    const [applicationResponse, setApplicationResponse] = useState("");
 
     const sendCommand = (descriptor) => {
         console.log(descriptor)
@@ -40,7 +37,7 @@ const ChatbotView = () => {
                     infoButton: true,
                     micButton: false,
                     audioButton: true,
-                    fullscreenButton: true,
+                    fullscreenButton: false,
                     settingsButton: true,
                     connectionStrengthIcon: true
                 },
@@ -52,9 +49,20 @@ const ChatbotView = () => {
         });
 
         setArcwareApplication(Application);
-        console.log(Application)
         Application.getApplicationResponse((response) => {
-            setApplicationResponse(response)
+            console.log(response)
+            if (response.startsWith("AI message :")) {
+                const messageContent = response.replace("AI message :", "").trim();
+                const messageStore = useMessageStore.getState();
+                if (
+                    messageStore.isProcessingMessage &&
+                    messageContent !== messageStore.lastBotMessage &&
+                    Date.now() - messageStore.messageTimestamp < 5000
+                ) {
+                    messageStore.setLastBotMessage(messageContent);
+                    messageStore.setIsProcessingMessage(false);
+                }
+            }
         });
 
         // Append the application's root element to the video container ref
@@ -63,22 +71,7 @@ const ChatbotView = () => {
         }
     }, []);
 
-    useEffect(() => {
-        if (applicationResponse.startsWith("AI message :")) {
-            const messageContent = applicationResponse.replace("AI message :", "").trim();
-            const messageStore = useMessageStore.getState();
-            if (
-                messageStore.isProcessingMessage &&
-                messageContent !== messageStore.lastBotMessage &&
-                Date.now() - messageStore.messageTimestamp < 5000
-            ) {
-                // Set flag to true to ignore subsequent messages
 
-                messageStore.setLastBotMessage(messageContent);
-                messageStore.setIsProcessingMessage(false);
-            }
-        }
-    }, [applicationResponse])
 
 
     const [userInput, setUserInput] = useState("");
@@ -153,6 +146,7 @@ const ChatbotView = () => {
     // Function to scroll to bottom
     const scrollToBottom = useCallback(() => {
         if (chatboxRef.current) {
+            chatboxRef.current.style.scrollBehavior = 'smooth';
             const scrollHeight = chatboxRef.current.scrollHeight;
             const height = chatboxRef.current.clientHeight;
             const maxScrollTop = scrollHeight - height;
@@ -235,7 +229,7 @@ const ChatbotView = () => {
                 </>
             }
             <div id="sizeContainer" className="relative" ref={videoContainerRef} />
-            {isLoaded && <div id="chat-container" className="flex flex-col justify-between items-center mx-auto border border-white backdrop-blur-sm p-6 rounded-xl shadow-2xl w-[95%] md:w-[60%] lg:w-[40%] xl:w-[20%] min-w-[300px] h-[400px] absolute right-[5rem] md:right-[5rem] bottom-[10px] left-[50%] md:left-auto -translate-x-1/2 md:translate-x-0">
+            {isLoaded && <div id="chat-container" className="flex flex-col justify-between items-center mx-auto border border-white backdrop-blur-sm p-6 rounded-xl shadow-2xl w-[95%] md:w-[60%] lg:w-[40%] xl:w-[20%] min-w-[300px] h-[87%] absolute right-[5rem] md:right-[5rem] bottom-[10px] left-[50%] md:left-auto -translate-x-1/2 md:translate-x-0">
                 <div
                     ref={chatboxRef}
                     id="chatbox"
