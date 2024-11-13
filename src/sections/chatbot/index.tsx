@@ -16,7 +16,6 @@ interface ChatMessage {
 
 const ChatbotView = () => {
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
-    const [knowledge, setknowledge] = useState(`My name is Erasmus.I am based on a combination of a digital avatar and chatbot agent technology. I am trained with a lot of data via a large language model. Here I translate voice to text prompts and vice versa. My gestures and their animation are synchronized with my response, and I learn from the interaction with my users. As Digiderius, a digital human, I will interact and collaborate with our students, staff and researchers at the Erasmus University Rotterdam, with our city and with other partners in our community. Together we will experiment and research how humans interact with avatars such as myself, to learn and study how we can provide a contribution to our society, responsibly and effectively. Of course, with an eye for social, ethical, legal and philosophical questions and challenges.`)
     const videoContainerRef = useRef<HTMLDivElement>(null);
     const [arcwareApplication, setArcwareApplication] = useState(null);
     const [applicationResponse, setApplicationResponse] = useState("");
@@ -50,7 +49,6 @@ const ChatbotView = () => {
 
         PixelStreaming.videoInitializedHandler.add(async () => {
             setIsLoaded(true)
-            sendCommand({ personas: knowledge });
         });
 
         setArcwareApplication(Application);
@@ -65,7 +63,23 @@ const ChatbotView = () => {
         }
     }, []);
 
-    console.log(applicationResponse)
+    useEffect(() => {
+        if (applicationResponse.startsWith("AI message :")) {
+            const messageContent = applicationResponse.replace("AI message :", "").trim();
+            const messageStore = useMessageStore.getState();
+            if (
+                messageStore.isProcessingMessage &&
+                messageContent !== messageStore.lastBotMessage &&
+                Date.now() - messageStore.messageTimestamp < 5000
+            ) {
+                // Set flag to true to ignore subsequent messages
+
+                messageStore.setLastBotMessage(messageContent);
+                messageStore.setIsProcessingMessage(false);
+            }
+        }
+    }, [applicationResponse])
+
 
     const [userInput, setUserInput] = useState("");
     const [isCallActive, setIsCallActive] = useState(false);
